@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Perception Lab — Sleep Deprivation Study</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #0d1b2e;
+    --panel: #112240;
+    --border: #1e3a5f;
+    --accent: #e2eaf4;
+    --accent2: #e05c5c;
+    --accent3: #3ecf7e;
+    --text: #e2eaf4;
+    --muted: #7a95b8;
+    --subtle: #152a45;
+    --blue: #5b9cf6;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .grid-bg { display: none; }
+
+  .screen {
+    display: none;
+    position: relative;
+    min-height: 100vh;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 40px 20px;
+  }
+  .screen.active { display: flex; }
+
+  /* ── HEADER ── */
+  .lab-header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    padding: 14px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    z-index: 100;
+  }
+  .lab-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0;
+  }
+  .lab-badge {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 40px;
+    width: 100%;
+    max-width: 520px;
+  }
+  .card-wide { max-width: 720px; }
+
+  h1 { font-size: 26px; font-weight: 600; line-height: 1.3; margin-bottom: 6px; color: var(--text); }
+  h2 { font-size: 22px; font-weight: 600; margin-bottom: 20px; color: var(--text); }
+  h3 { font-size: 14px; font-weight: 600; margin-bottom: 10px; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px; }
+  p { color: var(--muted); line-height: 1.7; font-size: 14px; }
+
+  .accent  { color: var(--blue); }
+  .accent2 { color: var(--accent2); }
+  .accent3 { color: var(--accent3); }
+
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    background: var(--subtle);
+    color: var(--muted);
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+  }
+
+  /* ── INPUTS ── */
+  .field { margin-bottom: 18px; }
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  input, select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    border-radius: 6px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  input:focus, select:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+  }
+  select option { background: var(--bg); }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-block;
+    padding: 10px 24px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    transition: all 0.15s;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .btn-primary { background: var(--text); color: var(--bg); }
+  .btn-primary:hover { background: #333; }
+  .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .btn-outline:hover { background: var(--subtle); }
+  .btn-danger { background: var(--accent2); color: #fff; }
+  .btn-danger:hover { opacity: 0.88; }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* ── DIVIDER ── */
+  .divider { height: 1px; background: var(--border); margin: 24px 0; }
+
+  /* ── PHASE SELECTOR ── */
+  .phase-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+  .phase-btn {
+    padding: 28px 16px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.15s;
+  }
+  .phase-btn:hover { border-color: var(--text); color: var(--text); }
+  .phase-btn.selected { border-color: var(--text); background: var(--text); color: var(--bg); }
+  .phase-btn .phase-num { display: block; font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  .phase-btn.selected .phase-num { color: var(--bg); }
+
+  /* ── EXPERIMENT AREA ── */
+  #experiment-canvas {
+    width: 100%;
+    max-width: 700px;
+    aspect-ratio: 16/9;
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    margin: 0 auto 24px;
+  }
+
+  #stimulus-display {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .fixation { font-size: 40px; color: #fff; font-weight: 300; }
+
+  .stimulus-line {
+    background: #fff;
+    border-radius: 2px;
+    position: absolute;
+  }
+
+  .noise-mask { position: absolute; inset: 0; display: none; }
+
+  /* ── RESPONSE BUTTONS ── */
+  .response-area {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .resp-btn {
+    padding: 14px 28px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.12s;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+  }
+  .resp-btn:hover, .resp-btn:focus {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+    outline: none;
+  }
+  .resp-horizontal {}
+  .resp-diagonal {}
+  .resp-vertical {}
+
+  /* ── PROGRESS ── */
+  .progress-bar-wrap { width: 100%; max-width: 700px; margin: 0 auto 14px; }
+  .progress-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; display: flex; justify-content: space-between; }
+  .progress-track { height: 2px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--text); transition: width 0.3s; border-radius: 2px; }
+
+  /* ── STATUS ── */
+  .status-bar {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 14px;
+  }
+  .status-bar span { color: var(--text); font-weight: 500; }
+
+  /* ── CONTROLLER HINT ── */
+  .controller-hint {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    padding: 16px;
+    background: var(--subtle);
+    border-radius: 6px;
+  }
+  .hint-item { font-size: 12px; color: var(--muted); text-align: center; }
+  .hint-key { display: block; font-size: 16px; margin-bottom: 4px; color: var(--text); }
+
+  /* ── RESULTS TABLE ── */
+  .results-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .results-table th { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--muted); font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.4px; }
+  .results-table td { padding: 10px 12px; border-bottom: 1px solid var(--subtle); color: var(--text); }
+  .results-table tr:last-child td { border-bottom: none; }
+  .results-table tr:hover td { background: var(--subtle); }
+
+  .score-good { color: #3ecf7e; font-weight: 500; }
+  .score-mid  { color: #5b9cf6; font-weight: 500; }
+  .score-bad  { color: #e05c5c; font-weight: 500; }
+
+  /* ── STATS GRID ── */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+  .stat-card { background: var(--subtle); border-radius: 6px; padding: 18px; text-align: center; }
+  .stat-num { font-size: 28px; font-weight: 600; color: var(--text); }
+  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-top: 4px; font-weight: 500; }
+
+  /* ── COUNTDOWN ── */
+  #countdown-display {
+    font-size: 80px;
+    font-weight: 600;
+    color: var(--text);
+    text-align: center;
+  }
+
+  .instruction-text {
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.8;
+    max-width: 480px;
+    margin: 0 auto 20px;
+  }
+
+  /* ── ADMIN PANEL ── */
+  .admin-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 200;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 8px 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: pointer;
+    border-radius: 6px;
+  }
+  .admin-toggle:hover { border-color: var(--text); color: var(--text); }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 300;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 36px;
+    width: 100%;
+    max-width: 900px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  }
+
+  .table-wrap { overflow-x: auto; }
+
+  .mt-16 { margin-top: 16px; }
+  .mt-24 { margin-top: 24px; }
+  .mb-8  { margin-bottom: 8px; }
+  .text-center { text-align: center; }
+  .flex-gap { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .pulsing { animation: pulse 1.4s ease-in-out infinite; }
+
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+  .fade-in { animation: fadeIn 0.3s ease forwards; }
+
+  .warning-box {
+    background: rgba(224, 92, 92, 0.12);
+    border: 1px solid rgba(224, 92, 92, 0.4);
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: #f4a0a0;
+    line-height: 1.6;
+  }
+
+  .info-box {
+    background: rgba(91, 156, 246, 0.12);
+    border: 1px solid rgba(91, 156, 246, 0.35);
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: #93bbf9;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<!-- HEADER -->
+<div class="lab-header">
+  <div class="lab-title">Perception Lab</div>
+  <div class="lab-badge" id="header-phase">Sleep Deprivation Study</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 1 — WELCOME / PHASE SELECT
+══════════════════════════════════════════ -->
+<div class="screen active" id="screen-welcome" style="padding-top:100px;">
+  <div class="card fade-in">
+    <div class="tag">NZ High School Psychology</div>
+    <h1>Perception Lab</h1>
+    <p style="margin-bottom:28px;">Bottom-up visual processing study. This experiment tests feature detection and reaction time across three stages of sleep deprivation.</p>
+
+    <div class="warning-box">
+      ⚠ Participant: Do not show your results to others during the study. Complete honestly without discussing answers.
+    </div>
+
+    <div class="divider"></div>
+
+    <h3>Select Session</h3>
+    <div class="phase-grid">
+      <div class="phase-btn" onclick="selectPhase(1, this)"><span class="phase-num">1</span>Session 1</div>
+      <div class="phase-btn" onclick="selectPhase(2, this)"><span class="phase-num">2</span>Session 2</div>
+      <div class="phase-btn" onclick="selectPhase(3, this)"><span class="phase-num">3</span>Session 3</div>
+      <div class="phase-btn" onclick="selectPhase(4, this)"><span class="phase-num">4</span>Session 4</div>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;margin-bottom:24px;">
+      <div class="phase-btn" onclick="selectPhase(5, this)" style="width:calc(25% - 9px);"><span class="phase-num">5</span>Session 5</div>
+      <div class="phase-btn" onclick="selectPhase(6, this)" style="width:calc(25% - 9px);"><span class="phase-num">6</span>Session 6</div>
+      <div class="phase-btn" onclick="selectPhase(7, this)" style="width:calc(25% - 9px);"><span class="phase-num">7</span>Session 7</div>
+    </div>
+
+    <div class="field">
+      <label>Participant Initials</label>
+      <input type="text" id="participant-name" placeholder="e.g. J.S." autocomplete="off" maxlength="10" style="text-transform:uppercase;" />
+    </div>
+
+    <div class="field">
+      <label>Current Time</label>
+      <input type="time" id="participant-time" />
+    </div>
+
+    <div class="field">
+      <label>Karolinska Sleepiness Scale — How sleepy do you feel right now?</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;" id="tiredness-btns"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;">
+        <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);">1 — Extremely alert</span>
+        <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);">9 — Extremely sleepy</span>
+      </div>
+    </div>
+
+    <div class="mt-24">
+      <button class="btn btn-primary" onclick="startExperiment()" id="start-btn" disabled>Begin Experiment →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 2 — INSTRUCTIONS
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-instructions" style="padding-top:100px;">
+  <div class="card fade-in">
+    <div class="tag">Instructions</div>
+    <h2>How This Works</h2>
+
+    <div class="info-box">
+      This experiment has two parts. Read carefully before starting.
+    </div>
+
+    <h3>Test A — Visual Masking</h3>
+    <p style="margin-bottom:16px;">A line will flash on screen very briefly, then be replaced by a noise pattern. Identify the orientation of the line you saw using the buttons below.</p>
+
+    <div class="controller-hint">
+      <div class="hint-item"><span class="hint-key">◀ LEFT</span>Horizontal —</div>
+      <div class="hint-item"><span class="hint-key">▲ UP</span>Vertical |</div>
+      <div class="hint-item"><span class="hint-key">▶ RIGHT</span>Diagonal ╱</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <h3>Test B — High-Level Object Recognition</h3>
+    <p style="margin-bottom:16px;">A household object will flash briefly at different orientations (upright, sideways, diagonal). After the flash, select the object you saw from four options. This tests high-level visual recognition across viewpoints.</p>
+
+    <div class="divider"></div>
+
+    <p style="font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);">Total time: approximately 4–6 minutes. Do not discuss your answers with others.</p>
+
+    <div class="mt-24 flex-gap">
+      <button class="btn btn-outline" onclick="showScreen('screen-welcome')">← Back</button>
+      <button class="btn btn-primary" onclick="startCountdown()">I'm Ready →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 3 — COUNTDOWN
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-countdown" style="padding-top:100px;">
+  <div style="text-align:center;" class="fade-in">
+    <p style="font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:24px;letter-spacing:2px;text-transform:uppercase;">Starting in</p>
+    <div id="countdown-display">3</div>
+    <p style="font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);margin-top:16px;">Focus on the centre of the screen</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 4 — VISUAL MASKING EXPERIMENT
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-masking" style="padding-top:100px;">
+  <div style="width:100%;max-width:700px;" class="fade-in">
+    <div class="progress-bar-wrap">
+      <div class="progress-label">
+        <span>Visual Masking — Part 1</span>
+        <span id="masking-progress-label">0 / 12</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="masking-progress-fill" style="width:0%"></div></div>
+    </div>
+
+    <div class="status-bar">Participant: <span id="masking-participant-name">—</span> &nbsp;|&nbsp; Session: <span id="masking-phase-label">—</span></div>
+
+    <div id="experiment-canvas">
+      <canvas id="stimulus-canvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+      <div id="stimulus-display">
+        <div class="fixation pulsing">+</div>
+      </div>
+    </div>
+
+    <div class="response-area" id="response-area" style="display:none;">
+      <button class="resp-btn resp-horizontal" onclick="recordMaskingResponse('horizontal')" id="resp-h">◀ Horizontal —<br><span style="font-size:10px;color:var(--muted);font-weight:400;">Left Trigger</span></button>
+      <button class="resp-btn resp-vertical" onclick="recordMaskingResponse('vertical')" id="resp-v">▲ Vertical |<br><span style="font-size:10px;color:var(--muted);font-weight:400;">Grip Triggers</span></button>
+      <button class="resp-btn resp-diagonal" onclick="recordMaskingResponse('diagonal')" id="resp-d">▶ Diagonal ╱<br><span style="font-size:10px;color:var(--muted);font-weight:400;">Right Trigger</span></button>
+    </div>
+
+    <div class="instruction-text" id="masking-instruction">
+      Watch the centre of the screen. A line will flash briefly.<br>Then identify what you saw using the buttons above.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 4b — TEST B INTRO
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-testb-intro" style="padding-top:100px;">
+  <div class="card fade-in" style="max-width:580px;">
+    <div class="tag">Test B</div>
+    <h2>High-Level Object Recognition</h2>
+    <div class="info-box">
+      Test A is complete. Now starting Test B — Object Recognition across Orientations.
+    </div>
+    <p style="margin-bottom:12px;">A household object will flash briefly on screen at different orientations — upright, sideways, or diagonal. After it disappears, select the object you saw from the options shown.</p>
+    <p style="margin-bottom:16px;color:var(--muted);font-size:13px;">The options will appear <em>after</em> the image — respond as quickly and accurately as you can.</p>
+    <div class="controller-hint">
+      <div class="hint-item"><span class="hint-key">Flash</span>50–100ms object</div>
+      <div class="hint-item"><span class="hint-key">Then</span>Pick from 4 options</div>
+    </div>
+    <div class="mt-24 flex-gap">
+      <button class="btn btn-primary" onclick="startTestB()">Begin Test B →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 5 — TEST B STIMULUS + RESPONSE
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-testb" style="padding-top:60px;">
+  <div style="width:100%;max-width:680px;" class="fade-in">
+
+    <div class="progress-bar-wrap">
+      <div class="progress-label">
+        <span>Test B — Object Recognition</span>
+        <span id="testb-progress-label">0 / 30</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="testb-progress-fill" style="width:0%"></div></div>
+    </div>
+
+    <div class="status-bar" style="margin-bottom:8px;">
+      Participant: <span id="testb-participant-name">—</span>
+      &nbsp;|&nbsp; Session: <span id="testb-phase-label">—</span>
+      &nbsp;|&nbsp; <span id="testb-condition-label" style="color:var(--muted);font-size:11px;"></span>
+    </div>
+
+    <!-- Stimulus canvas — black background -->
+    <canvas id="testb-canvas" width="600" height="400"
+      style="display:block;margin:8px auto;border-radius:6px;border:1px solid var(--border);max-width:100%;background:#000;"></canvas>
+
+    <!-- Response grid — 4 options, hidden until after stimulus -->
+    <div id="testb-response-area" style="display:none;margin-top:12px;">
+      <p style="text-align:center;font-size:13px;color:var(--muted);margin-bottom:10px;">Which object did you see?</p>
+      <div id="testb-options-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:560px;margin:0 auto;"></div>
+    </div>
+
+    <div class="instruction-text" id="testb-instruction" style="min-height:32px;margin-top:8px;">
+      Get ready…
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 6 — COMPLETE
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-complete" style="padding-top:100px;">
+  <div class="card fade-in">
+    <div class="tag accent3">Test Complete</div>
+    <h2>Thank you, <span id="complete-name" style="color:var(--blue);">—</span></h2>
+    <p style="margin-bottom:28px;">Your results have been recorded. Please hand the device back to the test administrator. Do not discuss your results with other participants.</p>
+
+    <div class="stats-grid" style="grid-template-columns:repeat(5,1fr);">
+      <div class="stat-card">
+        <div class="stat-num accent" id="stat-accuracy">—</div>
+        <div class="stat-label">Test A Accuracy</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num accent2" id="stat-a-rt">—</div>
+        <div class="stat-label">Test A Avg RT</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num accent3" id="stat-testc">—</div>
+        <div class="stat-label">Test B Accuracy</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-b-rt" style="color:var(--blue);">—</div>
+        <div class="stat-label">Test B Avg RT</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-phase" style="font-size:14px;">—</div>
+        <div class="stat-label">Session</div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="showScreen('screen-welcome');resetExperiment()">New Participant →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     ADMIN PANEL
+══════════════════════════════════════════ -->
+<button class="admin-toggle" onclick="openAdmin()">Admin ⚙</button>
+
+<div class="modal-overlay" id="admin-modal">
+  <div class="modal">
+
+    <!-- PASSWORD GATE -->
+    <div id="admin-pwd-gate" style="display:none;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;gap:16px;">
+      <h3 style="margin:0 0 4px;font-size:16px;">Admin Access</h3>
+      <p style="margin:0;font-size:13px;">Enter the admin password to continue.</p>
+      <div style="display:flex;gap:10px;width:100%;max-width:320px;">
+        <input id="admin-pwd-input" type="password" placeholder="Password" style="flex:1;"
+          onkeydown="if(event.key==='Enter') submitAdminPassword();" autocomplete="off"/>
+        <button class="btn btn-primary" onclick="submitAdminPassword()">Enter</button>
+      </div>
+      <div id="admin-pwd-error" style="display:none;color:var(--accent2);font-size:13px;">Incorrect password. Try again.</div>
+      <button class="btn btn-outline" onclick="closeAdmin()" style="margin-top:8px;">Cancel</button>
+    </div>
+
+    <!-- ADMIN CONTENT -->
+    <div id="admin-content" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;">
+        <h2 style="margin:0;">Results Dashboard</h2>
+        <div style="display:flex;gap:12px;">
+          <button class="btn btn-outline" onclick="downloadCSV()">↓ Download CSV</button>
+          <button class="btn btn-danger" onclick="clearData()">Clear All</button>
+          <button class="btn btn-outline" onclick="closeAdmin()">✕ Close</button>
+        </div>
+      </div>
+
+      <!-- Admin quick-launch buttons -->
+      <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+        <span style="font-size:12px;color:var(--muted);align-self:center;text-transform:uppercase;letter-spacing:0.4px;">Jump to:</span>
+        <button class="btn btn-outline" style="font-size:13px;padding:8px 18px;" onclick="adminJumpTo('A')">▶ Test A</button>
+        <button class="btn btn-outline" style="font-size:13px;padding:8px 18px;" onclick="adminJumpTo('B')">▶ Test B</button>
+      </div>
+
+      <div class="stats-grid" style="grid-template-columns:repeat(5,1fr);" id="admin-stats">
+        <div class="stat-card"><div class="stat-num accent" id="admin-total">0</div><div class="stat-label">Total Tests</div></div>
+        <div class="stat-card"><div class="stat-num accent2" id="admin-avg-acc">—</div><div class="stat-label">Avg Test A Acc.</div></div>
+        <div class="stat-card"><div class="stat-num accent2" id="admin-avg-a-rt">—</div><div class="stat-label">Avg Test A RT</div></div>
+        <div class="stat-card"><div class="stat-num accent3" id="admin-avg-rt">—</div><div class="stat-label">Avg Test B Acc.</div></div>
+        <div class="stat-card"><div class="stat-num accent3" id="admin-avg-b-rt">—</div><div class="stat-label">Avg Test B RT</div></div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="results-table" id="results-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Phase</th>
+              <th>Time</th>
+              <th>KSS (1–9)</th>
+              <th>Test A Acc.</th>
+              <th>Test A Avg RT</th>
+              <th>Test B Acc.</th>
+              <th>B Avg RT</th>
+              <th>B Horiz.</th>
+              <th>B Vert.</th>
+              <th>B Diag.</th>
+              <th>Trials</th>
+            </tr>
+          </thead>
+          <tbody id="results-tbody">
+            <tr><td colspan="9" style="color:var(--muted);text-align:center;padding:32px;">No results yet</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let state = {
+  participant: '',
+  time: '',
+  phase: null,
+  tiredness: null,
+  maskingTrials: [],
+  currentMaskingIndex: 0,
+  stimulusCorrect: null,
+  trialStartTime: null,
+  allResults: JSON.parse(localStorage.getItem('perception_lab_results') || '[]')
+};
+
+const MASKING_TRIALS = 12;
+const STIMULUS_DURATION = 50; // ms
+const MASK_DURATION = 200; // ms
+const ORIENTATIONS = ['horizontal', 'diagonal', 'vertical'];
+const PHASE_LABELS = { 1: 'Session 1', 2: 'Session 2', 3: 'Session 3', 4: 'Session 4', 5: 'Session 5', 6: 'Session 6', 7: 'Session 7' };
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ══════════════════════════════════════════
+// WELCOME SCREEN
+// ══════════════════════════════════════════
+function selectPhase(num, el) {
+  state.phase = num;
+  document.querySelectorAll('.phase-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('header-phase').textContent = PHASE_LABELS[num];
+  checkStartReady();
+}
+
+document.getElementById('participant-name').addEventListener('input', checkStartReady);
+document.getElementById('participant-time').addEventListener('input', checkStartReady);
+
+// Generate KSS tiredness buttons 1-9
+const KSS_LABELS = {
+  1: 'Extremely alert',
+  2: 'Very alert',
+  3: 'Alert',
+  4: 'Rather alert',
+  5: 'Neither alert nor sleepy',
+  6: 'Some signs of sleepiness',
+  7: 'Sleepy, but no difficulty remaining awake',
+  8: 'Sleepy, some effort to keep alert',
+  9: 'Extremely sleepy, fighting sleep'
+};
+(function() {
+  const container = document.getElementById('tiredness-btns');
+  for (let i = 1; i <= 9; i++) {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;display:inline-block;';
+
+    const btn = document.createElement('button');
+    btn.className = 'tiredness-btn';
+    btn.textContent = i;
+    btn.title = KSS_LABELS[i];
+    btn.style.cssText = 'width:44px;height:44px;border:1px solid var(--border);background:var(--bg);color:var(--muted);font-family:Space Mono,monospace;font-size:14px;font-weight:700;border-radius:3px;cursor:pointer;transition:all 0.15s;flex-shrink:0;';
+
+    const tooltip = document.createElement('div');
+    tooltip.textContent = KSS_LABELS[i];
+    tooltip.style.cssText = 'position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#0a1628;color:var(--text);font-size:11px;font-family:Inter,sans-serif;white-space:nowrap;padding:5px 10px;border-radius:4px;border:1px solid var(--border);pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:50;';
+    btn.addEventListener('mouseenter', () => tooltip.style.opacity = '1');
+    btn.addEventListener('mouseleave', () => tooltip.style.opacity = '0');
+
+    btn.addEventListener('click', () => {
+      state.tiredness = i;
+      document.querySelectorAll('.tiredness-btn').forEach(b => {
+        b.style.background = 'var(--bg)';
+        b.style.color = 'var(--muted)';
+        b.style.borderColor = 'var(--border)';
+      });
+      // Colour scale: 1-3 green, 4-6 blue, 7-9 red
+      const colour = i <= 3 ? 'var(--accent3)' : i <= 6 ? 'var(--blue)' : 'var(--accent2)';
+      btn.style.background = colour;
+      btn.style.color = 'var(--bg)';
+      btn.style.borderColor = colour;
+      checkStartReady();
+    });
+
+    wrap.appendChild(btn);
+    wrap.appendChild(tooltip);
+    container.appendChild(wrap);
+  }
+})();
+
+// Set default time to now
+(function() {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('participant-time').value = `${hh}:${mm}`;
+})();
+
+function checkStartReady() {
+  const name = document.getElementById('participant-name').value.trim();
+  const time = document.getElementById('participant-time').value;
+  document.getElementById('start-btn').disabled = !(name && time && state.phase && state.tiredness);
+}
+
+function startExperiment() {
+  state.participant = document.getElementById('participant-name').value.trim();
+  state.time = document.getElementById('participant-time').value;
+  // tiredness already stored in state.tiredness via button click
+  state.maskingTrials = [];
+  state.currentMaskingIndex = 0;
+  showScreen('screen-instructions');
+}
+
+// ══════════════════════════════════════════
+// COUNTDOWN
+// ══════════════════════════════════════════
+function startCountdown() {
+  showScreen('screen-countdown');
+  let count = 3;
+  document.getElementById('countdown-display').textContent = count;
+  const interval = setInterval(() => {
+    count--;
+    if (count <= 0) {
+      clearInterval(interval);
+      initMaskingExperiment();
+    } else {
+      document.getElementById('countdown-display').textContent = count;
+    }
+  }, 1000);
+}
+
+// ══════════════════════════════════════════
+// MASKING EXPERIMENT
+// ══════════════════════════════════════════
+function initMaskingExperiment() {
+  showScreen('screen-masking');
+  document.getElementById('masking-participant-name').textContent = state.participant;
+  document.getElementById('masking-phase-label').textContent = PHASE_LABELS[state.phase];
+  updateMaskingProgress();
+  document.getElementById('response-area').style.display = 'none';
+  setTimeout(runMaskingTrial, 1000);
+}
+
+function updateMaskingProgress() {
+  const pct = (state.currentMaskingIndex / MASKING_TRIALS) * 100;
+  document.getElementById('masking-progress-fill').style.width = pct + '%';
+  document.getElementById('masking-progress-label').textContent = `${state.currentMaskingIndex} / ${MASKING_TRIALS}`;
+}
+
+// True random helpers using crypto.getRandomValues()
+function trueRandomInt(min, max) {
+  const range = max - min + 1;
+  const bytes = new Uint32Array(1);
+  crypto.getRandomValues(bytes);
+  return min + (bytes[0] % range);
+}
+
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = trueRandomInt(0, i);
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function runMaskingTrial() {
+  if (state.currentMaskingIndex >= MASKING_TRIALS) {
+    showScreen('screen-testb-intro');
+    return;
+  }
+
+  // True random orientation using crypto
+  const orientation = ORIENTATIONS[trueRandomInt(0, 2)];
+  state.stimulusCorrect = orientation;
+
+  const display = document.getElementById('stimulus-display');
+  const responseArea = document.getElementById('response-area');
+  responseArea.style.display = 'none';
+  document.getElementById('masking-instruction').textContent = 'Watch carefully...';
+
+  // Show fixation
+  display.innerHTML = '<div class="fixation pulsing">+</div>';
+
+  // True random fixation interval: 600–1400ms
+  const fixationDelay = trueRandomInt(600, 1400);
+
+  setTimeout(() => {
+    // Show stimulus
+    display.innerHTML = buildStimulusHTML(orientation);
+
+    setTimeout(() => {
+      // Show mask
+      display.innerHTML = buildMaskHTML();
+
+      setTimeout(() => {
+        // Show response
+        display.innerHTML = '<div class="fixation" style="color:var(--muted)">+</div>';
+        responseArea.style.display = 'flex';
+        document.getElementById('masking-instruction').textContent = 'What did you see?';
+        state.trialStartTime = performance.now();
+      }, MASK_DURATION);
+
+    }, STIMULUS_DURATION);
+
+  }, fixationDelay);
+}
+
+function buildStimulusHTML(orientation) {
+  const styles = {
+    horizontal: 'width:160px;height:5px;top:50%;left:50%;transform:translate(-50%,-50%)',
+    diagonal:   'width:160px;height:5px;top:50%;left:50%;transform:translate(-50%,-50%) rotate(45deg)',
+    vertical:   'width:5px;height:160px;top:50%;left:50%;transform:translate(-50%,-50%)'
+  };
+  return `<div class="stimulus-line" style="${styles[orientation]};background:#fff;border-radius:3px;position:absolute;"></div>`;
+}
+
+function buildMaskHTML() {
+  let lines = '';
+  for (let i = 0; i < 28; i++) {
+    const x = Math.random() * 100;
+    const y = Math.random() * 100;
+    const angle = Math.floor(Math.random() * 180);
+    const len = 30 + Math.random() * 60;
+    const thick = 2 + Math.random() * 4;
+    lines += `<div style="position:absolute;left:${x}%;top:${y}%;width:${len}px;height:${thick}px;background:rgba(255,255,255,${0.4 + Math.random()*0.6});transform:translate(-50%,-50%) rotate(${angle}deg);border-radius:2px;"></div>`;
+  }
+  return lines;
+}
+
+function recordMaskingResponse(response) {
+  const rt = performance.now() - state.trialStartTime;
+  const correct = response === state.stimulusCorrect;
+  state.maskingTrials.push({
+    trial: state.currentMaskingIndex + 1,
+    stimulus: state.stimulusCorrect,
+    response,
+    correct,
+    rt: Math.round(rt)
+  });
+  state.currentMaskingIndex++;
+  updateMaskingProgress();
+  document.getElementById('response-area').style.display = 'none';
+  setTimeout(runMaskingTrial, 600);
+}
+
+// ══════════════════════════════════════════
+// TEST B — HIGH-LEVEL OBJECT RECOGNITION
+// ══════════════════════════════════════════
+
+const TESTB_ORIENTATIONS   = ['horizontal', 'vertical', 'diagonal'];
+const TESTB_PER_ORIENT     = 10; // 10 per orientation = 30 total
+const TESTB_TOTAL          = TESTB_ORIENTATIONS.length * TESTB_PER_ORIENT;
+const TESTB_EXPOSE_MIN     = 50;  // ms
+const TESTB_EXPOSE_MAX     = 100; // ms
+
+// Rotation angles for each orientation label
+const ORIENT_ANGLES = { horizontal: 90, vertical: 0, diagonal: 45 };
+
+// ── SVG household objects (white line-art, 160×160 viewBox 0 0 100 100) ──
+const TESTB_OBJECTS = [
+  { name: 'Cup', svg: `<svg viewBox="0 0 100 100" width="140" height="140" xmlns="http://www.w3.org/2000/svg"><path d="M25 30 L30 80 Q50 88 70 80 L75 30 Z" fill="none" stroke="white" stroke-width="3" stroke-linejoin="round"/><path d="M75 40 Q92 40 92 55 Q92 70 75 68" fill="none" stroke="white" stroke-width="3"/><line x1="25" y1="30" x2="75" y2="30" stroke="white" stroke-width="3"/></svg>` },
+  { name: 'Scissors', svg: `<svg viewBox="0 0 100 100" width="140" height="140" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="72" r="10" fill="none" stroke="white" stroke-width="3"/><circle cx="70" cy="72" r="10" fill="none" stroke="white" stroke-width="3"/><line x1="37" y1="65" x2="50" y2="50" stroke="white" stroke-width="3"/><line x1="63" y1="65" x2="50" y2="50" stroke="white" stroke-width="3"/><line x1="50" y1="50" x2="28" y2="20" stroke="white" stroke-width="3"/><line x1="50" y1="50" x2="72" y2="20" stroke="white" stroke-width="3"/></svg>` },
+  { name: 'Key', svg: `<svg viewBox="0 0 100 100" width="140" height="140" xmlns="http://www.w3.org/2000/svg"><circle cx="35" cy="40" r="18" fill="none" stroke="white" stroke-width="3"/><line x1="50" y1="46" x2="85" y2="75" stroke="white" stroke-width="3"/><line x1="72" y1="64" x2="72" y2="74" stroke="white" stroke-width="3"/><line x1="79" y1="70" x2="79" y2="80" stroke="white" stroke-width="3"/></svg>` },
+  { name: 'Umbrella', svg: `<svg viewBox="0 0 100 100" width="140" height="140" xmlns="http://www.w3.org/2000/svg"><path d="M15 50 Q50 10 85 50" fill="none" stroke="white" stroke-width="3"/><line x1="50" y1="50" x2="50" y2="82" stroke="white" stroke-width="3"/><path d="M50 82 Q50 92 42 92 Q34 92 34 84" fill="none" stroke="white" stroke-width="3"/><line x1="15" y1="50" x2="50" y2="50" stroke="white" stroke-width="0.5" stroke-dasharray="3,3"/><line x1="50" y1="50" x2="85" y2="50" stroke="white" stroke-width="0.5" stroke-dasharray="3,3"/></svg>` },
+  { name: 'Bottle', svg: `<svg viewBox="0 0 100 100" width="140" height="140" xmlns="http://www.w3.org/2000/svg"><rect x="42" y="12" width="16" height="12" rx="2" fill="none" stroke="white" stroke-width="3"/><path d="M38 24 Q28 34 28 50 L28 80 Q28 88 50 88 Q72 88 72 80 L72 50 Q72 34 62 24 Z" fill="none" stroke="white" stroke-width="3"/></svg>` },
+  { name: 'Spoon', svg: `<svg viewBox="0 0 100 100" width="140" height="140" xmlns="http://www.w3.org/2000/svg"><ellipse cx="50" cy="25" rx="14" ry="18" fill="none" stroke="white" stroke-width="3"/><line x1="50" y1="43" x2="50" y2="88" stroke="white" stroke-width="3"/></svg>` },
+  { name: 'Glasses', svg: `<svg viewBox="0 0 100 100" width="140" height="140" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="52" r="16" fill="none" stroke="white" stroke-width="3"/><circle cx="68" cy="52" r="16" fill="none" stroke="white" stroke-width="3"/><line x1="48" y1="52" x2="52" y2="52" stroke="white" stroke-width="3"/><line x1="16" y1="46" x2="8" y2="42" stroke="white" stroke-width="3"/><line x1="84" y1="46" x2="92" y2="42" stroke="white" stroke-width="3"/></svg>` },
+  { name: 'Lightbulb', svg: `<svg viewBox="0 0 100 100" width="140" height="140" xmlns="http://www.w3.org/2000/svg"><path d="M35 55 Q25 45 30 30 Q35 15 50 15 Q65 15 70 30 Q75 45 65 55 L65 68 L35 68 Z" fill="none" stroke="white" stroke-width="3"/><line x1="38" y1="75" x2="62" y2="75" stroke="white" stroke-width="3"/><line x1="40" y1="82" x2="60" y2="82" stroke="white" stroke-width="3"/><line x1="44" y1="89" x2="56" y2="89" stroke="white" stroke-width="3"/></svg>` },
+  { name: 'Clock', svg: `<svg viewBox="0 0 100 100" width="140" height="140" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="52" r="34" fill="none" stroke="white" stroke-width="3"/><line x1="50" y1="20" x2="50" y2="16" stroke="white" stroke-width="3"/><line x1="50" y1="84" x2="50" y2="88" stroke="white" stroke-width="3"/><line x1="18" y1="52" x2="14" y2="52" stroke="white" stroke-width="3"/><line x1="82" y1="52" x2="86" y2="52" stroke="white" stroke-width="3"/><line x1="50" y1="52" x2="50" y2="32" stroke="white" stroke-width="3" stroke-linecap="round"/><line x1="50" y1="52" x2="64" y2="60" stroke="white" stroke-width="3" stroke-linecap="round"/><circle cx="50" cy="52" r="3" fill="white"/></svg>` },
+  { name: 'Pot', svg: `<svg viewBox="0 0 100 100" width="140" height="140" xmlns="http://www.w3.org/2000/svg"><path d="M22 40 L28 80 Q28 86 50 86 Q72 86 72 80 L78 40 Z" fill="none" stroke="white" stroke-width="3" stroke-linejoin="round"/><line x1="18" y1="40" x2="82" y2="40" stroke="white" stroke-width="3"/><path d="M18 40 Q10 40 10 50 Q10 60 18 58" fill="none" stroke="white" stroke-width="3"/><path d="M82 40 Q90 40 90 50 Q90 60 82 58" fill="none" stroke="white" stroke-width="3"/><line x1="38" y1="40" x2="35" y2="28" stroke="white" stroke-width="3" stroke-linecap="round"/><line x1="62" y1="40" x2="65" y2="28" stroke="white" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="28" x2="68" y2="28" stroke="white" stroke-width="3" stroke-linecap="round"/></svg>` },
+  { name: 'Phone', svg: `<svg viewBox="0 0 100 100" width="140" height="140" xmlns="http://www.w3.org/2000/svg"><rect x="30" y="10" width="40" height="80" rx="6" fill="none" stroke="white" stroke-width="3"/><line x1="30" y1="22" x2="70" y2="22" stroke="white" stroke-width="2"/><line x1="30" y1="78" x2="70" y2="78" stroke="white" stroke-width="2"/><circle cx="50" cy="87" r="4" fill="none" stroke="white" stroke-width="2"/><line x1="44" y1="16" x2="56" y2="16" stroke="white" stroke-width="3" stroke-linecap="round"/></svg>` },
+  { name: 'Comb', svg: `<svg viewBox="0 0 100 100" width="140" height="140" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="35" width="70" height="16" rx="3" fill="none" stroke="white" stroke-width="3"/><line x1="22" y1="51" x2="22" y2="68" stroke="white" stroke-width="3"/><line x1="33" y1="51" x2="33" y2="68" stroke="white" stroke-width="3"/><line x1="44" y1="51" x2="44" y2="68" stroke="white" stroke-width="3"/><line x1="55" y1="51" x2="55" y2="68" stroke="white" stroke-width="3"/><line x1="66" y1="51" x2="66" y2="68" stroke="white" stroke-width="3"/><line x1="77" y1="51" x2="77" y2="68" stroke="white" stroke-width="3"/></svg>` },
+  { name: 'Chair', svg: `<svg viewBox="0 0 100 100" width="140" height="140" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="18" width="60" height="36" rx="3" fill="none" stroke="white" stroke-width="3"/><line x1="20" y1="54" x2="80" y2="54" stroke="white" stroke-width="3"/><line x1="25" y1="54" x2="22" y2="88" stroke="white" stroke-width="3"/><line x1="75" y1="54" x2="78" y2="88" stroke="white" stroke-width="3"/><line x1="22" y1="72" x2="78" y2="72" stroke="white" stroke-width="2"/></svg>` },
+  { name: 'Lamp', svg: `<svg viewBox="0 0 100 100" width="140" height="140" xmlns="http://www.w3.org/2000/svg"><path d="M28 18 L72 18 L62 52 L38 52 Z" fill="none" stroke="white" stroke-width="3" stroke-linejoin="round"/><line x1="50" y1="52" x2="50" y2="80" stroke="white" stroke-width="3"/><line x1="30" y1="80" x2="70" y2="80" stroke="white" stroke-width="3"/><line x1="38" y1="80" x2="34" y2="88" stroke="white" stroke-width="3"/><line x1="62" y1="80" x2="66" y2="88" stroke="white" stroke-width="3"/></svg>` },
+  { name: 'Book', svg: `<svg viewBox="0 0 100 100" width="140" height="140" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="18" width="60" height="70" rx="2" fill="none" stroke="white" stroke-width="3"/><line x1="50" y1="18" x2="50" y2="88" stroke="white" stroke-width="2"/><line x1="28" y1="35" x2="46" y2="35" stroke="white" stroke-width="2"/><line x1="28" y1="45" x2="46" y2="45" stroke="white" stroke-width="2"/><line x1="54" y1="35" x2="72" y2="35" stroke="white" stroke-width="2"/><line x1="54" y1="45" x2="72" y2="45" stroke="white" stroke-width="2"/></svg>` },
+];
+
+// ── Trial builder ─────────────────────────────────────────────────────────
+// 10 objects × 3 orientations = 30 trials, true-randomly ordered
+// Each trial shows one object at one orientation
+function buildTestBTrialList() {
+  const trials = [];
+  // Assign each object to each orientation — 10 per orientation
+  // We have 15 objects; pick 10 randomly per orientation
+  TESTB_ORIENTATIONS.forEach(orient => {
+    const objs = shuffleArray([...TESTB_OBJECTS]).slice(0, TESTB_PER_ORIENT);
+    objs.forEach(obj => {
+      trials.push({
+        obj,
+        orientation: orient,
+        rotationDeg: ORIENT_ANGLES[orient],
+        exposureMs: trueRandomInt(TESTB_EXPOSE_MIN, TESTB_EXPOSE_MAX)
+      });
+    });
+  });
+  return shuffleArray(trials); // true-random order across orientations
+}
+
+// ── Foil picker — 3 wrong objects different from target ───────────────────
+function pickFoils(targetName) {
+  const pool = TESTB_OBJECTS.filter(o => o.name !== targetName);
+  return shuffleArray(pool).slice(0, 3);
+}
+
+// ── Canvas helpers ────────────────────────────────────────────────────────
+function clearTestBCanvas() {
+  const c = document.getElementById('testb-canvas');
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, c.width, c.height);
+}
+
+function drawTestBFixation() {
+  const c = document.getElementById('testb-canvas');
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, c.width, c.height);
+  const cx = c.width / 2, cy = c.height / 2, sz = 14;
+  ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(cx - sz, cy); ctx.lineTo(cx + sz, cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, cy - sz); ctx.lineTo(cx, cy + sz); ctx.stroke();
+}
+
+function drawTestBObject(trial) {
+  return new Promise((resolve) => {
+    const c = document.getElementById('testb-canvas');
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, c.width, c.height);
+
+    const cx = c.width / 2, cy = c.height / 2;
+    const size = 140;
+    const rad = (trial.rotationDeg * Math.PI) / 180;
+
+    const blob = new Blob([trial.obj.svg], { type: 'image/svg+xml' });
+    const url  = URL.createObjectURL(blob);
+    const img  = new Image();
+    img.onload = () => {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(rad);
+      ctx.drawImage(img, -size / 2, -size / 2, size, size);
+      ctx.restore();
+      URL.revokeObjectURL(url);
+      resolve();
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(); }; // fail gracefully
+    img.src = url;
+  });
+}
+
+// ── State ─────────────────────────────────────────────────────────────────
+let testBState = {
+  trialList:   [],
+  trialIndex:  0,
+  trials:      [],   // recorded results
+  awaitingResponse: false,
+};
+
+// ── Entry / init ──────────────────────────────────────────────────────────
+function startTestB() {
+  showScreen('screen-testb');
+  document.getElementById('testb-participant-name').textContent = state.participant;
+  document.getElementById('testb-phase-label').textContent = PHASE_LABELS[state.phase] || state.phase;
+  testBState = {
+    trialList: buildTestBTrialList(),
+    trialIndex: 0,
+    trials: [],
+    awaitingResponse: false,
+  };
+  clearTestBCanvas();
+  document.getElementById('testb-response-area').style.display = 'none';
+  document.getElementById('testb-instruction').textContent = 'Get ready…';
+  updateTestBProgress();
+  setTimeout(runTestBTrial, 1000);
+}
+
+function updateTestBProgress() {
+  const pct = (testBState.trialIndex / TESTB_TOTAL) * 100;
+  document.getElementById('testb-progress-fill').style.width = pct + '%';
+  document.getElementById('testb-progress-label').textContent =
+    `${testBState.trialIndex} / ${TESTB_TOTAL}`;
+}
+
+// ── Trial runner ──────────────────────────────────────────────────────────
+function runTestBTrial() {
+  if (testBState.trialIndex >= TESTB_TOTAL) {
+    finishExperiment();
+    return;
+  }
+
+  const trial = testBState.trialList[testBState.trialIndex];
+  const instr = document.getElementById('testb-instruction');
+  const respArea = document.getElementById('testb-response-area');
+
+  respArea.style.display = 'none';
+  testBState.awaitingResponse = false;
+  document.getElementById('testb-condition-label').textContent =
+    `Orientation: ${trial.orientation} · ${trial.exposureMs}ms`;
+  instr.textContent = 'Watch carefully…';
+
+  // 1. Fixation (600–1100ms true random)
+  drawTestBFixation();
+  setTimeout(() => {
+    // 2. Black blank (80ms)
+    clearTestBCanvas();
+    setTimeout(() => {
+      // 3. Show object — wait for SVG to render before starting exposure timer
+      drawTestBObject(trial).then(() => {
+        setTimeout(() => {
+          // 4. Black mask
+          clearTestBCanvas();
+          setTimeout(() => {
+            // 5. Show response options
+            showTestBOptions(trial);
+          }, 100);
+        }, trial.exposureMs);
+      });
+    }, 80);
+  }, trueRandomInt(600, 1100));
+}
+
+// ── Response screen ───────────────────────────────────────────────────────
+function showTestBOptions(trial) {
+  testBState.awaitingResponse = true;
+  testBState.trialStartTime = performance.now();
+
+  const foils = pickFoils(trial.obj.name);
+  // Build shuffled 4-option list (1 correct + 3 foils)
+  const options = shuffleArray([trial.obj, ...foils]);
+  // Controller label: grid order is top-left, top-right, bottom-left, bottom-right
+  // Matches: Y, B, X, A
+  const ctrlLabels = ['Y', 'B', 'X', 'A'];
+
+  const grid = document.getElementById('testb-options-grid');
+  grid.innerHTML = '';
+  options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'btn';
+    btn.innerHTML = `${opt.name}<br><span style="font-size:10px;color:var(--muted);font-weight:400;">${ctrlLabels[i]}</span>`;
+    btn.style.cssText = `
+      font-size: 16px;
+      padding: 16px 12px;
+      border: 1px solid var(--border);
+      background: var(--subtle);
+      color: var(--text);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.12s;
+      text-align: center;
+      line-height: 1.6;
+    `;
+    btn.onmouseenter = () => { btn.style.borderColor = 'var(--text)'; btn.style.color = 'var(--text)'; };
+    btn.onmouseleave = () => { btn.style.borderColor = 'var(--border)'; };
+    btn.onclick = () => recordTestBResponse(trial, opt.name);
+    grid.appendChild(btn);
+  });
+
+  document.getElementById('testb-response-area').style.display = 'block';
+  document.getElementById('testb-instruction').textContent = 'Which object did you see?';
+}
+
+// ── Record response ───────────────────────────────────────────────────────
+function recordTestBResponse(trial, chosen) {
+  if (!testBState.awaitingResponse) return;
+  testBState.awaitingResponse = false;
+
+  const rt      = Math.round(performance.now() - testBState.trialStartTime);
+  const correct = chosen === trial.obj.name;
+
+  testBState.trials.push({
+    trial:       testBState.trialIndex + 1,
+    object:      trial.obj.name,
+    orientation: trial.orientation,
+    rotationDeg: trial.rotationDeg,
+    exposureMs:  trial.exposureMs,
+    chosen,
+    correct,
+    rt,
+  });
+
+  // Disable all buttons silently
+  document.querySelectorAll('#testb-options-grid button').forEach(b => b.disabled = true);
+  document.getElementById('testb-response-area').style.display = 'none';
+
+  testBState.trialIndex++;
+  updateTestBProgress();
+  setTimeout(runTestBTrial, 400);
+}
+
+// ══════════════════════════════════════════
+// SEND RESULTS TO GOOGLE SHEETS
+// ══════════════════════════════════════════
+const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxZlY0gjdLLpOuQR28nBP3G3DduTXZo9R5DNxNUbIFn_MxwwlW9n-0rpapLItWjygoo/exec";
+
+function sendResultToSheets(result) {
+  return fetch(WEBHOOK_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(result)
+  }).then(() => {
+    console.log('Results sent to Google Sheets');
+  }).catch(err => {
+    console.warn('Failed to send results:', err);
+  });
+}
+
+// ══════════════════════════════════════════
+// FINISH
+// ══════════════════════════════════════════
+function finishExperiment() {
+  // Test A
+  const maskCorrect  = state.maskingTrials.filter(t => t.correct);
+  const maskAccuracy = state.maskingTrials.length ? Math.round((maskCorrect.length / state.maskingTrials.length) * 100) : 0;
+  const maskRTs      = state.maskingTrials.map(t => t.rt).filter(r => r != null);
+  const maskAvgRT    = maskRTs.length ? Math.round(maskRTs.reduce((a,b) => a+b,0) / maskRTs.length) : null;
+
+  // Test B
+  const testBTrials  = testBState ? testBState.trials : [];
+  const testBCorrect = testBTrials.filter(t => t.correct);
+  const testBAccuracy = testBTrials.length ? Math.round((testBCorrect.length / testBTrials.length) * 100) : 0;
+  const testBRTs     = testBTrials.map(t => t.rt).filter(r => r != null);
+  const testBAvgRT   = testBRTs.length ? Math.round(testBRTs.reduce((a,b) => a+b,0) / testBRTs.length) : null;
+  const testBByOrient = TESTB_ORIENTATIONS.map(o => {
+    const sub = testBTrials.filter(t => t.orientation === o);
+    return { orientation: o, n: sub.length, acc: sub.length ? Math.round(sub.filter(t=>t.correct).length/sub.length*100) : null };
+  });
+
+  const result = {
+    name: state.participant,
+    phase: state.phase,
+    phaseLabel: PHASE_LABELS[state.phase] || state.phase,
+    time: state.time,
+    tiredness: state.tiredness,
+    accuracy: maskAccuracy,
+    maskAvgRT,
+    testBAccuracy,
+    testBAvgRT,
+    testBByOrient,
+    maskingTrials: state.maskingTrials,
+    testBTrials,
+    timestamp: new Date().toISOString()
+  };
+
+  state.allResults.push(result);
+  localStorage.setItem('perception_lab_results', JSON.stringify(state.allResults));
+
+  // Auto-send to Google Sheets
+  sendResultToSheets(result).then(() => {
+    const el = document.getElementById('sheets-status');
+    if (el) { el.textContent = '✓ Results saved to Google Sheets'; el.style.color = 'var(--accent3)'; }
+  }).catch(() => {
+    const el = document.getElementById('sheets-status');
+    if (el) { el.textContent = '⚠ Could not reach Google Sheets — use CSV backup'; el.style.color = 'var(--accent2)'; }
+  });
+
+  document.getElementById('complete-name').textContent = state.participant;
+  document.getElementById('stat-accuracy').textContent = maskAccuracy + '%';
+  document.getElementById('stat-a-rt').textContent     = maskAvgRT !== null ? maskAvgRT + 'ms' : '—';
+  document.getElementById('stat-testc').textContent    = testBAccuracy + '%';
+  document.getElementById('stat-b-rt').textContent     = testBAvgRT !== null ? testBAvgRT + 'ms' : '—';
+  document.getElementById('stat-phase').textContent    = PHASE_LABELS[state.phase] || state.phase;
+
+  const score = v => v >= 70 ? 'score-good' : v >= 50 ? 'score-mid' : 'score-bad';
+  document.getElementById('stat-accuracy').className  = 'stat-num ' + score(maskAccuracy);
+  document.getElementById('stat-testc').className     = 'stat-num ' + score(testBAccuracy);
+
+  showScreen('screen-complete');
+}
+
+function resetExperiment() {
+  state.participant = '';
+  state.phase = null;
+  document.getElementById('participant-name').value = '';
+  document.querySelectorAll('.phase-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('start-btn').disabled = true;
+  document.getElementById('header-phase').textContent = 'Sleep Deprivation Study';
+  state.tiredness = null;
+  document.querySelectorAll('.tiredness-btn').forEach(b => { b.style.background = 'var(--bg)'; b.style.color = 'var(--muted)'; b.style.borderColor = 'var(--border)'; });
+}
+
+// ══════════════════════════════════════════
+// ADMIN
+// ══════════════════════════════════════════
+function adminJumpTo(test) {
+  // Set state to admin mode — no real participant info needed
+  state.participant = 'Admin';
+  state.phase = 1;
+  state.time = 'admin';
+  state.tiredness = null;
+  state.maskingTrials = [];
+  state.currentMaskingIndex = 0;
+  closeAdmin();
+
+  if (test === 'A') {
+    showScreen('screen-masking');
+    setTimeout(() => {
+      document.getElementById('masking-participant-name') &&
+        (document.getElementById('masking-participant-name').textContent = 'Admin');
+      runMaskingTrial();
+    }, 300);
+  } else if (test === 'B') {
+    showScreen('screen-testb-intro');
+  }
+}
+
+function openAdmin() {
+  // Show the modal with password gate first
+  document.getElementById('admin-modal').classList.add('open');
+  document.getElementById('admin-pwd-gate').style.display = 'flex';
+  document.getElementById('admin-content').style.display = 'none';
+  document.getElementById('admin-pwd-input').value = '';
+  setTimeout(() => document.getElementById('admin-pwd-input').focus(), 100);
+}
+
+function submitAdminPassword() {
+  const pwd = document.getElementById('admin-pwd-input').value;
+  if (pwd !== '102030') {
+    document.getElementById('admin-pwd-error').style.display = 'block';
+    document.getElementById('admin-pwd-input').value = '';
+    document.getElementById('admin-pwd-input').focus();
+    return;
+  }
+  document.getElementById('admin-pwd-gate').style.display = 'none';
+  document.getElementById('admin-content').style.display = 'block';
+  renderAdminTable();
+}
+function closeAdmin() {
+  document.getElementById('admin-modal').classList.remove('open');
+}
+
+function renderAdminTable() {
+  const results = state.allResults;
+  document.getElementById('admin-total').textContent = results.length;
+
+  if (results.length === 0) {
+    document.getElementById('admin-avg-acc').textContent = '—';
+    document.getElementById('admin-avg-rt').textContent = '—';
+    document.getElementById('results-tbody').innerHTML = '<tr><td colspan="9" style="color:var(--muted);text-align:center;padding:32px;">No results yet</td></tr>';
+    return;
+  }
+
+  const avgAcc = Math.round(results.reduce((a,r) => a + r.accuracy, 0) / results.length);
+  const validTestBAcc = results.filter(r => r.testBAccuracy !== undefined).map(r => r.testBAccuracy);
+  const avgTestBAcc   = validTestBAcc.length ? Math.round(validTestBAcc.reduce((a,b) => a+b,0) / validTestBAcc.length) : null;
+  const validART      = results.filter(r => r.maskAvgRT != null).map(r => r.maskAvgRT);
+  const avgART        = validART.length ? Math.round(validART.reduce((a,b) => a+b,0) / validART.length) : null;
+  const validBRT      = results.filter(r => r.testBAvgRT != null).map(r => r.testBAvgRT);
+  const avgBRT        = validBRT.length ? Math.round(validBRT.reduce((a,b) => a+b,0) / validBRT.length) : null;
+  document.getElementById('admin-avg-acc').textContent   = avgAcc + '%';
+  document.getElementById('admin-avg-a-rt').textContent  = avgART !== null ? avgART + 'ms' : '—';
+  document.getElementById('admin-avg-rt').textContent    = avgTestBAcc !== null ? avgTestBAcc + '%' : '—';
+  document.getElementById('admin-avg-b-rt').textContent  = avgBRT !== null ? avgBRT + 'ms' : '—';
+
+  // Group results by participant name (case-insensitive)
+  const grouped = {};
+  results.forEach(r => {
+    const key = r.name.trim().toLowerCase();
+    if (!grouped[key]) grouped[key] = { displayName: r.name, sessions: [] };
+    grouped[key].sessions.push(r);
+  });
+
+  let rows = '';
+  Object.values(grouped).forEach(group => {
+    const sessions = group.sessions.sort((a,b) => a.phase - b.phase);
+    const rowspan = sessions.length;
+    sessions.forEach((r, i) => {
+      const accClass = r.accuracy >= 70 ? 'score-good' : r.accuracy >= 50 ? 'score-mid' : 'score-bad';
+      const phaseColors = { 1:'var(--accent3)', 2:'#5b9cf6', 3:'var(--blue)', 4:'#a78bfa', 5:'#f59e0b', 6:'var(--accent2)', 7:'#ec4899' };
+      rows += `<tr style="border-top: ${i === 0 ? '2px solid var(--border)' : 'none'}">
+        ${i === 0 ? `<td rowspan="${rowspan}" style="font-weight:700;color:var(--text);vertical-align:middle;border-right:1px solid var(--border);">${group.displayName}</td>` : ''}
+        <td style="color:${phaseColors[r.phase]}">${r.phaseLabel}</td>
+        <td>${r.time}</td>
+        <td style="color:var(--text);font-weight:500;">${r.tiredness || '—'}/9</td>
+        <td class="${accClass}">${r.accuracy}%</td>
+        <td>${r.maskAvgRT !== null && r.maskAvgRT !== undefined ? r.maskAvgRT+'ms' : '—'}</td>
+        <td>${r.testBAccuracy !== undefined ? r.testBAccuracy+'%' : '—'}</td>
+        <td>${r.testBAvgRT !== null && r.testBAvgRT !== undefined ? r.testBAvgRT+'ms' : '—'}</td>
+        ${['horizontal','vertical','diagonal'].map(o => { const c = (r.testBByOrient||[]).find(x=>x.orientation===o); return `<td>${c && c.acc !== null ? c.acc+'%' : '—'}</td>`; }).join('')}
+        <td>${r.maskingTrials.length + (r.testBTrials||[]).length}</td>
+      </tr>`;
+    });
+  });
+  document.getElementById('results-tbody').innerHTML = rows;
+}
+
+function downloadCSV() {
+  const results = state.allResults;
+  if (!results.length) { alert('No results to download.'); return; }
+  // Sort by name then phase so grouped participants appear together
+  const sorted = [...results].sort((a,b) => {
+    const nameCompare = a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+    return nameCompare !== 0 ? nameCompare : a.phase - b.phase;
+  });
+  const headers = ['Name','Session Number','Session Label','Time','KSS Sleepiness (1-9)','Test A Accuracy (%)','Test A Avg RT (ms)','Test B Accuracy (%)','Test B Avg RT (ms)','Test B Horizontal (%)','Test B Vertical (%)','Test B Diagonal (%)','Timestamp'];
+  const rows = sorted.map(r => {
+    const getO = o => { const c = (r.testBByOrient||[]).find(x=>x.orientation===o); return c && c.acc !== null ? c.acc : ''; };
+    return [`"${r.name}"`, r.phase, `"${r.phaseLabel}"`, r.time, r.tiredness || '', r.accuracy, r.maskAvgRT !== null && r.maskAvgRT !== undefined ? r.maskAvgRT : '', r.testBAccuracy !== undefined ? r.testBAccuracy : '', r.testBAvgRT !== null && r.testBAvgRT !== undefined ? r.testBAvgRT : '', getO('horizontal'), getO('vertical'), getO('diagonal'), r.timestamp].join(',');
+  });
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `perception_lab_results_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function clearData() {
+  if (!confirm('Clear ALL results? This cannot be undone.')) return;
+  state.allResults = [];
+  localStorage.removeItem('perception_lab_results');
+  renderAdminTable();
+}
+
+// Close modal on outside click
+
+// ── Gamepad / Oculus Quest 2 controller support ───────────────────────────
+// Button index map (Quest 2 via WebXR Gamepad API):
+//   0 = A,  1 = B,  2 = X,  3 = Y
+//   4 = Left grip,  5 = Right grip
+//   6 = Left trigger,  7 = Right trigger
+
+let gpPrev = {}; // track previous button states to fire on press not hold
+
+function pollGamepad() {
+  let gamepads = [];
+  try { gamepads = navigator.getGamepads ? Array.from(navigator.getGamepads()).filter(Boolean) : []; }
+  catch(e) { return; }
+
+  gamepads.forEach(gp => {
+    gp.buttons.forEach((btn, idx) => {
+      const wasPressed = gpPrev[gp.index + '_' + idx] || false;
+      const isPressed  = btn.pressed;
+      if (isPressed && !wasPressed) handleGamepadButton(idx);
+      gpPrev[gp.index + '_' + idx] = isPressed;
+    });
+  });
+  requestAnimationFrame(pollGamepad);
+}
+
+// Start polling immediately on page load — don't wait for gamepadconnected
+// (Quest browser sometimes doesn't fire the event reliably)
+let gpPolling = false;
+function startGamepadPolling() {
+  if (gpPolling) return;
+  gpPolling = true;
+  gpPrev = {};
+  requestAnimationFrame(pollGamepad);
+}
+
+// Try both — on connect event AND just always start on load
+window.addEventListener('gamepadconnected', startGamepadPolling);
+window.addEventListener('load', startGamepadPolling);
+
+function handleGamepadButton(idx) {
+  const maskScreen  = document.getElementById('screen-masking').classList.contains('active');
+  const testBScreen = document.getElementById('screen-testb').classList.contains('active');
+
+  // ── Test A — Visual Masking ───────────────────────────────────────────
+  if (maskScreen && document.getElementById('response-area').style.display !== 'none') {
+    // Left trigger  (6) → Horizontal
+    if (idx === 6) recordMaskingResponse('horizontal');
+    // Left grip (4) or Right grip (5) → Vertical (middle finger triggers)
+    if (idx === 4 || idx === 5) recordMaskingResponse('vertical');
+    // Right trigger (7) → Diagonal
+    if (idx === 7) recordMaskingResponse('diagonal');
+  }
+
+  // ── Test B — Object Recognition (Y/X/B/A → top-left/bottom-left/top-right/bottom-right) ──
+  if (testBScreen && testBState && testBState.awaitingResponse) {
+    const btns = document.querySelectorAll('#testb-options-grid button');
+    // Grid is 2 columns: [0]=top-left, [1]=top-right, [2]=bottom-left, [3]=bottom-right
+    if (idx === 3 && btns[0]) btns[0].click(); // Y → top-left
+    if (idx === 2 && btns[2]) btns[2].click(); // X → bottom-left
+    if (idx === 1 && btns[1]) btns[1].click(); // B → top-right
+    if (idx === 0 && btns[3]) btns[3].click(); // A → bottom-right
+  }
+}
+
+// ── Keyboard support ─────────────────────────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  const maskScreen = document.getElementById('screen-masking').classList.contains('active');
+  if (maskScreen && document.getElementById('response-area').style.display !== 'none') {
+    if (e.key === 'ArrowLeft')  recordMaskingResponse('horizontal');
+    if (e.key === 'ArrowUp')    recordMaskingResponse('vertical');
+    if (e.key === 'ArrowRight') recordMaskingResponse('diagonal');
+  }
+});
+
+document.getElementById('admin-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeAdmin();
+});
+</script>
+</body>
+</html>
